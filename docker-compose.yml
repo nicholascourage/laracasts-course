@@ -1,0 +1,99 @@
+networks:
+    laracasts-course:
+        driver: bridge
+
+services:
+
+  nginx:
+    container_name: nginx
+    build:
+      context: .docker/nginx
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/var/www/html
+      - ./.docker/nginx/laracasts-course.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+    networks:
+      - laracasts-course
+  php:
+    container_name: php
+    build:
+      context: .docker/php
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/var/www/html
+      - ./.docker/nginx/laracasts-course.conf:/etc/nginx/conf.d/laracasts-course.conf
+      - ./.docker/php/php.ini:/usr/local/etc/php/conf.d/php.ini
+    ports:
+      - 9000:9000
+    networks:
+      - laracasts-course
+
+  postgres:
+    container_name: postgres
+    image: "postgres:latest"
+    platform: 'linux/x86_64'
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: "${DB_USERNAME}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
+      POSTGRES_DB: "${DB_DATABASE}"
+
+    volumes:
+      - ".docker/postgres:/var/lib/postgresql/data"
+    networks:
+      - laracasts-course
+
+  redis:
+    container_name: redis
+    image: 'redis:latest'
+    tty: true
+    ports:
+      - '6379:6379'
+    networks:
+      - laracasts-course
+
+  artisan:
+    container_name: artisan
+    build:
+      context: .docker/php
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/var/www/html
+    working_dir: /var/www/html
+    entrypoint: [ "php","/var/www/html/artisan" ]
+    networks:
+      - laracasts-course
+
+  npm:
+    container_name: npm
+    image: node:latest
+    volumes:
+      - ./:/var/www/html
+    working_dir: /var/www/html
+    entrypoint: [ 'npm' ]
+    networks:
+      - laracasts-course
+
+  yarn:
+    container_name: yarn
+    image: node:latest
+    volumes:
+        - ./:/var/www/html
+    working_dir: /var/www/html
+    entrypoint: [ 'yarn' ]
+    networks:
+      - laracasts-course
+
+  mailhog:
+    image: "mailhog/mailhog:latest"
+    ports:
+      - 1025:1025
+      - 8025:8025
+    networks:
+      - laracasts-course
+
