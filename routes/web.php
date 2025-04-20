@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome');
 
-Route::get('/search', Search::class);
+//Route::get('/search', Search::class);
 Route::get('/articles/{article}', ShowArticle::class);
 
 Route::view('dashboard', 'dashboard')
